@@ -14,7 +14,7 @@ export const Navbar = ({
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -28,38 +28,37 @@ export const Navbar = ({
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
           ? 'bg-white/90 backdrop-blur-md shadow-md py-3'
           : 'bg-transparent py-5'
-      }`}
+        }`}
     >
       <div className="container mx-auto flex justify-between items-center px-4">
         <div className="flex items-center">
           <h1 className="font-bold text-2xl text-ocean">EcoBot</h1>
         </div>
         <div className="hidden md:flex items-center space-x-6">
-          <button 
-            onClick={() => scrollToSection('hero')} 
-            className="nav-link"
+          <button
+            onClick={() => scrollToSection('hero')}
+            className="text-white hover:text-[#1e3a8a] transition duration-150 ease-in-out;"
           >
             Início
           </button>
-          <button 
-            onClick={() => scrollToSection('about')} 
-            className="nav-link"
+          <button
+            onClick={() => scrollToSection('about')}
+            className="text-white hover:text-[#1e3a8a] transition duration-150 ease-in-out;"
           >
             Saiba Mais
           </button>
           <Button
             onClick={onToggleChat}
-            className="ml-4 bg-ocean hover:bg-ocean-shallow text-white flex items-center gap-2"
+            className="ml-4 bg-[#0ea5e9] hover:bg-[#1e3a8a] text-white flex items-center gap-2"
           >
             <MessageCircle size={18} />
             <span>Chatbot</span>
           </Button>
         </div>
-        
+
         {/* Mobile menu button */}
         <div className="md:hidden flex items-center">
           <Button
@@ -98,7 +97,7 @@ export const Navbar = ({
       {/* Mobile menu */}
       <div id="mobile-menu" className="hidden md:hidden bg-white shadow-lg absolute w-full">
         <div className="px-2 pt-2 pb-3 space-y-1">
-          <button 
+          <button
             onClick={() => {
               scrollToSection('hero');
               const mobileMenu = document.getElementById('mobile-menu');
@@ -110,7 +109,7 @@ export const Navbar = ({
           >
             Início
           </button>
-          <button 
+          <button
             onClick={() => {
               scrollToSection('about');
               const mobileMenu = document.getElementById('mobile-menu');

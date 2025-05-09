@@ -86,10 +86,6 @@
     @apply rounded-full bg-white hover:bg-gray-50 text-ocean border-2 border-ocean py-3 px-8 font-semibold transition-all duration-300;
   }
   
-  .nav-link {
-    @apply text-gray-600 hover:text-ocean font-medium transition-colors;
-  }
-  
   .section-title {
     @apply text-3xl md:text-4xl font-bold text-gray-800 relative inline-block;
   }
