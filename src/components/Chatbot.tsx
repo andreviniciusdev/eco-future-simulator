@@ -3,8 +3,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { MessageCircle, Send, X } from 'lucide-react';
+import { MessageCircle, Send, X, Key } from 'lucide-react';
 import { toast } from 'sonner';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 interface Message {
   text: string;
@@ -20,7 +21,7 @@ const initialMessages: Message[] = [
   }
 ];
 
-// Pre-defined responses for the chatbot
+// Pre-defined responses for the chatbot as fallback
 const responses: Record<string, string> = {
   'default': 'Desculpe, não entendi sua pergunta. Posso ajudar com informações sobre acidificação dos oceanos, impactos ambientais ou como usar o simulador.',
   'oi': 'Olá! Como posso ajudar você hoje?',
@@ -41,9 +42,79 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
+  const [isApiKeyConfigOpen, setIsApiKeyConfigOpen] = useState(false);
+  const [apiKey, setApiKey] = useState<string>(() => {
+    return localStorage.getItem('deepseekApiKey') || '';
+  });
+  const [isTyping, setIsTyping] = useState(false);
 
-  // Function to find the best response based on user input
-  const getBotResponse = (userInput: string): string => {
+  // Save API key to local storage when it changes
+  useEffect(() => {
+    if (apiKey) {
+      localStorage.setItem('deepseekApiKey', apiKey);
+    }
+  }, [apiKey]);
+
+  // Function to make API call to Deepseek
+  const getDeepseekResponse = async (userMessage: string): Promise<string> => {
+    if (!apiKey) {
+      return "Preciso de uma chave de API para poder conversar melhor. Clique no ícone de configuração para adicionar sua chave da Deepseek.";
+    }
+
+    setIsTyping(true);
+    
+    try {
+      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: `Você é Eco, um assistente especializado em acidificação dos oceanos e proteção ambiental marinha. 
+              Seu tom é educativo, paciente e amigável. Você sempre responde em português do Brasil.
+              Responda de forma concisa e clara, com foco em educar o usuário sobre questões relacionadas à acidificação oceânica, 
+              seus impactos nos ecossistemas marinhos e como as pessoas podem ajudar a mitigar esses problemas.
+              Adapte suas respostas para serem compreensíveis para diferentes faixas etárias.`
+            },
+            {
+              role: "user",
+              content: userMessage
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 500
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error('Error calling Deepseek API:', error);
+      
+      // Fallback to pre-defined responses
+      for (const [key, value] of Object.entries(responses)) {
+        if (userMessage.toLowerCase().includes(key)) {
+          return value;
+        }
+      }
+      
+      return responses.default;
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  // Function to find the best response based on user input (fallback)
+  const getFallbackResponse = (userInput: string): string => {
     const lowercaseInput = userInput.toLowerCase();
     
     // Check if any key phrase is in the user input
@@ -57,7 +128,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
   };
 
   // Handle sending a message
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!input.trim()) return;
     
     // Add user message
@@ -70,16 +141,35 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     
-    // Simulate bot typing with a small delay
-    setTimeout(() => {
-      const botResponse: Message = {
-        text: getBotResponse(input),
+    // Add typing indicator
+    setIsTyping(true);
+    
+    try {
+      // Get response from Deepseek API
+      const botResponse = await getDeepseekResponse(input);
+      
+      const botMessage: Message = {
+        text: botResponse,
         sender: 'bot',
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, botResponse]);
-    }, 1000);
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Error getting response:', error);
+      
+      // Fallback to pre-defined responses
+      const fallbackResponse: Message = {
+        text: getFallbackResponse(input),
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, fallbackResponse]);
+      toast.error('Não foi possível conectar à API. Usando respostas offline.');
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   // Handle key press (send on enter)
@@ -87,6 +177,12 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
     if (e.key === 'Enter') {
       handleSendMessage();
     }
+  };
+
+  // Handle saving API key
+  const handleSaveApiKey = () => {
+    setIsApiKeyConfigOpen(false);
+    toast.success('Chave de API salva com sucesso!');
   };
 
   // Scroll to bottom when messages update
@@ -105,14 +201,49 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
             <MessageCircle size={20} />
             <h2 className="font-bold">Chat com Eco</h2>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="text-white hover:bg-ocean-deep/20"
-          >
-            <X size={20} />
-          </Button>
+          <div className="flex items-center">
+            <Sheet open={isApiKeyConfigOpen} onOpenChange={setIsApiKeyConfigOpen}>
+              <SheetTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-white hover:bg-ocean-deep/20 mr-2"
+                >
+                  <Key size={18} />
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Configurar API Deepseek</SheetTitle>
+                </SheetHeader>
+                <div className="py-6">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Para usar a IA do Deepseek, adicione sua chave de API abaixo. Você pode obter uma chave gratuita em <a href="https://deepseek.com" target="_blank" rel="noopener noreferrer" className="text-ocean underline">deepseek.com</a>
+                  </p>
+                  <Input
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="Chave de API Deepseek"
+                    className="mb-4"
+                  />
+                  <Button 
+                    className="w-full bg-ocean hover:bg-ocean-deep"
+                    onClick={handleSaveApiKey}
+                  >
+                    Salvar
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-white hover:bg-ocean-deep/20"
+            >
+              <X size={20} />
+            </Button>
+          </div>
         </div>
         
         {/* Messages area */}
@@ -146,6 +277,20 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
             ))}
+            
+            {/* Typing indicator */}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="bg-gray-200 text-gray-800 rounded-2xl rounded-tl-none px-4 py-2">
+                  <div className="flex space-x-1">
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot animation-delay-200"></div>
+                    <div className="typing-dot animation-delay-400"></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div ref={endOfMessagesRef} />
           </div>
         </div>
@@ -159,10 +304,11 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
               onKeyDown={handleKeyDown}
               placeholder="Digite sua mensagem..."
               className="flex-1"
+              disabled={isTyping}
             />
             <Button 
               onClick={handleSendMessage}
-              disabled={!input.trim()}
+              disabled={!input.trim() || isTyping}
               className="bg-ocean hover:bg-ocean-deep"
             >
               <Send size={18} />
