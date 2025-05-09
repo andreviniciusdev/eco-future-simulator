@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { MessageCircle, X } from 'lucide-react';
+import { Button } from "@/components/ui/button"; // Add this import
 import { toast } from 'sonner';
 import MessageList from './chat/MessageList';
 import ChatInput from './chat/ChatInput';
