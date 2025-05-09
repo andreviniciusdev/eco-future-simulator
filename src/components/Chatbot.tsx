@@ -3,9 +3,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { MessageCircle, Send, X, Key } from 'lucide-react';
+import { MessageCircle, Send, X, Key, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Message {
   text: string;
@@ -44,34 +45,37 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
   const [isApiKeyConfigOpen, setIsApiKeyConfigOpen] = useState(false);
   const [apiKey, setApiKey] = useState<string>(() => {
-    return localStorage.getItem('deepseekApiKey') || '';
+    return localStorage.getItem('perplexityApiKey') || '';
   });
   const [isTyping, setIsTyping] = useState(false);
+  const [apiStatus, setApiStatus] = useState<'unknown' | 'valid' | 'invalid' | 'error'>('unknown');
 
   // Save API key to local storage when it changes
   useEffect(() => {
     if (apiKey) {
-      localStorage.setItem('deepseekApiKey', apiKey);
+      localStorage.setItem('perplexityApiKey', apiKey);
+      setApiStatus('unknown');
     }
   }, [apiKey]);
 
-  // Function to make API call to Deepseek
-  const getDeepseekResponse = async (userMessage: string): Promise<string> => {
+  // Function to make API call to Perplexity
+  const getPerplexityResponse = async (userMessage: string): Promise<string> => {
     if (!apiKey) {
-      return "Preciso de uma chave de API para poder conversar melhor. Clique no ícone de configuração para adicionar sua chave da Deepseek.";
+      setApiStatus('invalid');
+      return "Preciso de uma chave de API para poder conversar melhor. Clique no ícone de configuração para adicionar sua chave da Perplexity.";
     }
 
     setIsTyping(true);
     
     try {
-      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: "deepseek-chat",
+          model: "llama-3.1-sonar-small-128k-online",
           messages: [
             {
               role: "system",
@@ -87,27 +91,33 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
             }
           ],
           temperature: 0.7,
-          max_tokens: 500
+          max_tokens: 500,
+          return_images: false,
+          return_related_questions: false
         })
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Perplexity API error:', response.status, errorData);
+        
+        if (response.status === 401) {
+          setApiStatus('invalid');
+          throw new Error('Chave de API inválida');
+        } else {
+          setApiStatus('error');
+          throw new Error(`Erro ${response.status}: ${errorData.error?.message || 'Falha na API'}`);
+        }
       }
 
+      setApiStatus('valid');
       const data = await response.json();
       return data.choices[0].message.content;
     } catch (error) {
-      console.error('Error calling Deepseek API:', error);
+      console.error('Error calling Perplexity API:', error);
       
       // Fallback to pre-defined responses
-      for (const [key, value] of Object.entries(responses)) {
-        if (userMessage.toLowerCase().includes(key)) {
-          return value;
-        }
-      }
-      
-      return responses.default;
+      return getFallbackResponse(userMessage);
     } finally {
       setIsTyping(false);
     }
@@ -145,8 +155,8 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
     setIsTyping(true);
     
     try {
-      // Get response from Deepseek API
-      const botResponse = await getDeepseekResponse(input);
+      // Get response from Perplexity API
+      const botResponse = await getPerplexityResponse(input);
       
       const botMessage: Message = {
         text: botResponse,
@@ -214,16 +224,16 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
               </SheetTrigger>
               <SheetContent>
                 <SheetHeader>
-                  <SheetTitle>Configurar API Deepseek</SheetTitle>
+                  <SheetTitle>Configurar API Perplexity</SheetTitle>
                 </SheetHeader>
                 <div className="py-6">
                   <p className="text-sm text-gray-600 mb-4">
-                    Para usar a IA do Deepseek, adicione sua chave de API abaixo. Você pode obter uma chave gratuita em <a href="https://deepseek.com" target="_blank" rel="noopener noreferrer" className="text-ocean underline">deepseek.com</a>
+                    Para usar a IA do Perplexity, adicione sua chave de API abaixo. Você pode obter uma chave gratuita em <a href="https://www.perplexity.ai/settings/api" target="_blank" rel="noopener noreferrer" className="text-ocean underline">perplexity.ai/settings/api</a>
                   </p>
                   <Input
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Chave de API Deepseek"
+                    placeholder="Chave de API Perplexity"
                     className="mb-4"
                   />
                   <Button 
@@ -232,6 +242,24 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
                   >
                     Salvar
                   </Button>
+
+                  {apiStatus === 'invalid' && (
+                    <Alert variant="destructive" className="mt-4">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        A chave de API parece ser inválida. Por favor, verifique-a e tente novamente.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  {apiStatus === 'error' && (
+                    <Alert variant="destructive" className="mt-4">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Ocorreu um erro na comunicação com a API. Por favor, tente novamente mais tarde.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
