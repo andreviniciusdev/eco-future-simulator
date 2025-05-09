@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { MessageCircle, Send, X, Key, AlertCircle } from 'lucide-react';
+import { MessageCircle, Send, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -22,16 +22,25 @@ const initialMessages: Message[] = [
   }
 ];
 
-// Pre-defined responses for the chatbot as fallback
+// Expanded pre-defined responses for the chatbot
 const responses: Record<string, string> = {
   'default': 'Desculpe, não entendi sua pergunta. Posso ajudar com informações sobre acidificação dos oceanos, impactos ambientais ou como usar o simulador.',
   'oi': 'Olá! Como posso ajudar você hoje?',
   'olá': 'Olá! Como posso ajudar você hoje?',
+  'ajuda': 'Posso ajudar com informações sobre acidificação dos oceanos, impactos ambientais, como usar o simulador, ou como você pode contribuir para soluções.',
   'o que é acidificação': 'A acidificação dos oceanos é o processo de diminuição do pH da água do mar, causado principalmente pela absorção de dióxido de carbono (CO₂) da atmosfera. Isso afeta organismos marinhos com conchas e esqueletos de carbonato de cálcio, como corais e mariscos.',
   'como funciona o simulador': 'Nosso simulador permite visualizar os efeitos da acidificação oceânica em diferentes cenários. Você pode ajustar os níveis de CO₂ e observar as mudanças nos ecossistemas marinhos em tempo real.',
   'quais os impactos': 'Os impactos da acidificação incluem: enfraquecimento de conchas e esqueletos de organismos marinhos, branqueamento de corais, alterações na cadeia alimentar marinha e redução da biodiversidade oceânica.',
   'como posso ajudar': 'Você pode ajudar reduzindo sua pegada de carbono através de ações como: diminuir o uso de combustíveis fósseis, apoiar energias renováveis, reduzir o consumo de carne, e participar de iniciativas de conservação marinha.',
   'quem criou': 'O EcoBot foi criado por uma equipe de cientistas e desenvolvedores comprometidos com a educação ambiental e a preservação dos oceanos.',
+  'ph oceano': 'O pH médio dos oceanos era de aproximadamente 8,2 antes da era industrial. Atualmente, está em torno de 8,1, o que representa um aumento de 30% na acidez (lembrando que a escala de pH é logarítmica). Projeções indicam que pode cair para 7,8 até o final deste século se as emissões de CO₂ continuarem no ritmo atual.',
+  'corais': 'Os corais são extremamente sensíveis à acidificação dos oceanos. O pH mais baixo dificulta a formação de seus esqueletos de carbonato de cálcio e pode levar ao branqueamento. Além disso, a acidificação combinada com o aquecimento dos oceanos cria um "efeito duplo" devastador para os recifes de coral.',
+  'solução': 'As principais soluções para a acidificação dos oceanos envolvem: redução das emissões globais de CO₂, desenvolvimento de energias renováveis, reflorestamento, proteção de ecossistemas marinhos como manguezais e pradarias marinhas (que capturam carbono), e pesquisa de técnicas de restauração de recifes e outros habitats marinhos.',
+  'história do brasil': 'Como assistente especializado em acidificação dos oceanos, não tenho informações detalhadas sobre a história do Brasil. Posso ajudar com questões relacionadas aos oceanos, acidificação e impactos ambientais marinhos.',
+  'biodiversidade': 'A acidificação dos oceanos ameaça a biodiversidade marinha de várias formas: afeta organismos que formam conchas ou esqueletos calcários, altera a cadeia alimentar, reduz a capacidade reprodutiva de certas espécies e pode modificar comportamentos dos organismos marinhos. Ecossistemas inteiros, como recifes de coral, que abrigam 25% de toda a vida marinha, estão em risco.',
+  'economia': 'A acidificação dos oceanos tem impactos econômicos significativos, afetando a pesca comercial, a aquicultura (especialmente de moluscos), o turismo relacionado aos recifes de coral, e aumentando os custos de adaptação e mitigação. Estima-se que os danos econômicos globais possam chegar a trilhões de dólares até o final do século.',
+  'experimentos': 'Cientistas realizam diversos experimentos para estudar a acidificação dos oceanos, incluindo: estudos em laboratório com tanques de água do mar em diferentes níveis de pH, instalações de enriquecimento de CO₂ em campo (FOCE - Free Ocean CO₂ Enrichment), monitoramento de áreas com fontes naturais de CO₂ (como respiradouros vulcânicos submarinos), e modelagem computacional de cenários futuros.',
+  'definição': 'A acidificação dos oceanos é o processo contínuo de redução do pH das águas oceânicas, causado principalmente pela absorção do excesso de dióxido de carbono (CO₂) da atmosfera. Quando o CO₂ se dissolve na água do mar, forma ácido carbônico, liberando íons de hidrogênio que aumentam a acidez da água.'
 };
 
 interface ChatbotProps {
@@ -43,88 +52,10 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
-  const [isApiKeyConfigOpen, setIsApiKeyConfigOpen] = useState(false);
-  const [apiKey, setApiKey] = useState<string>(() => {
-    return localStorage.getItem('perplexityApiKey') || '';
-  });
   const [isTyping, setIsTyping] = useState(false);
-  const [apiStatus, setApiStatus] = useState<'unknown' | 'valid' | 'invalid' | 'error'>('unknown');
 
-  // Save API key to local storage when it changes
-  useEffect(() => {
-    if (apiKey) {
-      localStorage.setItem('perplexityApiKey', apiKey);
-      setApiStatus('unknown');
-    }
-  }, [apiKey]);
-
-  // Function to make API call to Perplexity
-  const getPerplexityResponse = async (userMessage: string): Promise<string> => {
-    if (!apiKey) {
-      setApiStatus('invalid');
-      return "Preciso de uma chave de API para poder conversar melhor. Clique no ícone de configuração para adicionar sua chave da Perplexity.";
-    }
-
-    setIsTyping(true);
-    
-    try {
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-sonar-small-128k-online",
-          messages: [
-            {
-              role: "system",
-              content: `Você é Eco, um assistente especializado em acidificação dos oceanos e proteção ambiental marinha. 
-              Seu tom é educativo, paciente e amigável. Você sempre responde em português do Brasil.
-              Responda de forma concisa e clara, com foco em educar o usuário sobre questões relacionadas à acidificação oceânica, 
-              seus impactos nos ecossistemas marinhos e como as pessoas podem ajudar a mitigar esses problemas.
-              Adapte suas respostas para serem compreensíveis para diferentes faixas etárias.`
-            },
-            {
-              role: "user",
-              content: userMessage
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 500,
-          return_images: false,
-          return_related_questions: false
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Perplexity API error:', response.status, errorData);
-        
-        if (response.status === 401) {
-          setApiStatus('invalid');
-          throw new Error('Chave de API inválida');
-        } else {
-          setApiStatus('error');
-          throw new Error(`Erro ${response.status}: ${errorData.error?.message || 'Falha na API'}`);
-        }
-      }
-
-      setApiStatus('valid');
-      const data = await response.json();
-      return data.choices[0].message.content;
-    } catch (error) {
-      console.error('Error calling Perplexity API:', error);
-      
-      // Fallback to pre-defined responses
-      return getFallbackResponse(userMessage);
-    } finally {
-      setIsTyping(false);
-    }
-  };
-
-  // Function to find the best response based on user input (fallback)
-  const getFallbackResponse = (userInput: string): string => {
+  // Function to find the best response based on user input (offline mode)
+  const getOfflineResponse = (userInput: string): string => {
     const lowercaseInput = userInput.toLowerCase();
     
     // Check if any key phrase is in the user input
@@ -134,7 +65,31 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
       }
     }
     
+    // If no specific match is found, try to find a relevant response
+    // by checking if any key is somewhat related to the input
+    const words = lowercaseInput.split(/\s+/);
+    for (const word of words) {
+      if (word.length < 3) continue; // Skip short words
+      
+      for (const [key, value] of Object.entries(responses)) {
+        if (key.includes(word) || word.includes(key)) {
+          return value;
+        }
+      }
+    }
+    
     return responses.default;
+  };
+
+  // Add typing simulation for a more natural chatbot feel
+  const simulateTyping = async (text: string): Promise<string> => {
+    return new Promise((resolve) => {
+      // Simulate typing delay based on message length
+      const typingTime = Math.min(1000, Math.max(500, text.length * 20));
+      setTimeout(() => {
+        resolve(text);
+      }, typingTime);
+    });
   };
 
   // Handle sending a message
@@ -155,8 +110,9 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
     setIsTyping(true);
     
     try {
-      // Get response from Perplexity API
-      const botResponse = await getPerplexityResponse(input);
+      // Get response from offline responses with typing simulation
+      const responseText = getOfflineResponse(input);
+      const botResponse = await simulateTyping(responseText);
       
       const botMessage: Message = {
         text: botResponse,
@@ -168,15 +124,15 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
     } catch (error) {
       console.error('Error getting response:', error);
       
-      // Fallback to pre-defined responses
+      // Fallback response
       const fallbackResponse: Message = {
-        text: getFallbackResponse(input),
+        text: responses.default,
         sender: 'bot',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, fallbackResponse]);
-      toast.error('Não foi possível conectar à API. Usando respostas offline.');
+      toast.error('Ocorreu um erro ao processar sua mensagem.');
     } finally {
       setIsTyping(false);
     }
@@ -187,12 +143,6 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
     if (e.key === 'Enter') {
       handleSendMessage();
     }
-  };
-
-  // Handle saving API key
-  const handleSaveApiKey = () => {
-    setIsApiKeyConfigOpen(false);
-    toast.success('Chave de API salva com sucesso!');
   };
 
   // Scroll to bottom when messages update
@@ -212,57 +162,6 @@ const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
             <h2 className="font-bold">Chat com Eco</h2>
           </div>
           <div className="flex items-center">
-            <Sheet open={isApiKeyConfigOpen} onOpenChange={setIsApiKeyConfigOpen}>
-              <SheetTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-white hover:bg-ocean-deep/20 mr-2"
-                >
-                  <Key size={18} />
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Configurar API Perplexity</SheetTitle>
-                </SheetHeader>
-                <div className="py-6">
-                  <p className="text-sm text-gray-600 mb-4">
-                    Para usar a IA do Perplexity, adicione sua chave de API abaixo. Você pode obter uma chave gratuita em <a href="https://www.perplexity.ai/settings/api" target="_blank" rel="noopener noreferrer" className="text-ocean underline">perplexity.ai/settings/api</a>
-                  </p>
-                  <Input
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Chave de API Perplexity"
-                    className="mb-4"
-                  />
-                  <Button 
-                    className="w-full bg-ocean hover:bg-ocean-deep"
-                    onClick={handleSaveApiKey}
-                  >
-                    Salvar
-                  </Button>
-
-                  {apiStatus === 'invalid' && (
-                    <Alert variant="destructive" className="mt-4">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        A chave de API parece ser inválida. Por favor, verifique-a e tente novamente.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  {apiStatus === 'error' && (
-                    <Alert variant="destructive" className="mt-4">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        Ocorreu um erro na comunicação com a API. Por favor, tente novamente mais tarde.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
             <Button
               variant="ghost"
               size="icon"
