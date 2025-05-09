@@ -90,10 +90,6 @@
     @apply text-3xl md:text-4xl font-bold text-gray-800 relative inline-block;
   }
   
-  .section-title::after {
-    @apply content-[''] absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-ocean-shallow rounded-full;
-  }
-  
   .bubble {
     @apply rounded-full bg-white/20 absolute;
   }
