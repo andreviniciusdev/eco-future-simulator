@@ -131,16 +131,8 @@ const Index = () => {
                 A conscientização sobre este problema é fundamental para promover ações que possam mitigar seus efeitos devastadores nos ecossistemas marinhos e na vida humana.
               </p>
               
-              <div className="pt-4">
-                <button 
-                  type="button"
-                  onClick={handlePlayNow} 
-                  className="ocean-button-primary hover:scale-105 transition-transform cursor-pointer"
-                >
-                  Jogar Agora
-                </button>
+              
               </div>
-            </div>
           </div>
         </div>
         
