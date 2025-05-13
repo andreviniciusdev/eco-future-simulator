@@ -134,8 +134,9 @@ const Index = () => {
               
               <div className="pt-4">
                 <button 
+                  type="button"
                   onClick={handlePlayNow} 
-                  className="ocean-button-primary hover:scale-105 transition-transform"
+                  className="ocean-button-primary hover:scale-105 transition-transform cursor-pointer"
                 >
                   Jogar Agora
                 </button>
