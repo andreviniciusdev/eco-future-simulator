@@ -78,9 +78,12 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <ChevronDown className="text-white h-8 w-8 opacity-70" />
+        {/* Scroll indicator - Agora será clicável */}
+        <div 
+          className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce cursor-pointer"
+          onClick={() => scrollToSection('about')}
+        >
+          <ChevronDown className="text-white h-8 w-8 opacity-70 hover:opacity-100 transition-opacity" />
         </div>
       </section>
       
@@ -130,7 +133,10 @@ const Index = () => {
               </p>
               
               <div className="pt-4">
-                <button onClick={handlePlayNow} className="ocean-button-primary">
+                <button 
+                  onClick={handlePlayNow} 
+                  className="ocean-button-primary hover:scale-105 transition-transform"
+                >
                   Jogar Agora
                 </button>
               </div>
