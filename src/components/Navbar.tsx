@@ -32,7 +32,7 @@ export const Navbar = ({
           : 'bg-transparent py-5'
         }`}
     >
-      <div className="container mx-auto flex justify-between items-center px-36">
+      <div className="container mx-auto flex justify-between items-center px-20">
         <div className="flex items-center">
           <h1 className="font-bold text-2xl text-white">EcoBot</h1>
         </div>
