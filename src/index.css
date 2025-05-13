@@ -83,7 +83,7 @@
   }
   
   .ocean-button-secondary {
-    @apply rounded-full bg-white hover:bg-gray-50 text-ocean border-2 border-ocean py-3 px-8 font-semibold transition-all duration-300;
+    @apply rounded-full bg-white hover:bg-gray-300 text-ocean border-2 border-ocean py-3 px-8 font-semibold transition-all duration-300;
   }
   
   .section-title {
