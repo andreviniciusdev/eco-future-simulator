@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
@@ -182,29 +181,9 @@ const Index = () => {
                   facilitem ações concretas para preservação dos oceanos e ecossistemas marinhos.
                 </p>
               </div>
-              
-              <div className="flex gap-6 mt-8">
-                <div className="flex flex-col items-center">
-                  <Users className="h-8 w-8 text-ocean mb-2" />
-                  <span className="text-2xl font-bold text-ocean-deep">15+</span>
-                  <span className="text-sm text-gray-600">Especialistas</span>
-                </div>
-                
-                <div className="flex flex-col items-center">
-                  <Award className="h-8 w-8 text-ocean mb-2" />
-                  <span className="text-2xl font-bold text-ocean-deep">8</span>
-                  <span className="text-sm text-gray-600">Prêmios</span>
-                </div>
-                
-                <div className="flex flex-col items-center">
-                  <Building className="h-8 w-8 text-ocean mb-2" />
-                  <span className="text-2xl font-bold text-ocean-deep">3</span>
-                  <span className="text-sm text-gray-600">Escritórios</span>
-                </div>
-              </div>
             </div>
             
-            <div className="order-1 md:order-2">
+            <div className="order-1 md:order-2 flex items-start justify-center">
               <div className="relative">
                 <img 
                   src="https://images.unsplash.com/photo-1519389950473-47ba0277781c" 
