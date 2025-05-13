@@ -32,7 +32,7 @@ export const Navbar = ({
           : 'bg-transparent py-5'
         }`}
     >
-      <div className="container mx-auto flex justify-between items-center px-4">
+      <div className="container mx-auto flex justify-between items-center px-36">
         <div className="flex items-center">
           <h1 className="font-bold text-2xl text-white">EcoBot</h1>
         </div>
@@ -60,7 +60,7 @@ export const Navbar = ({
             className="ml-4 bg-[#0ea5e9] hover:bg-[#0891b2] text-white flex items-center gap-2"
           >
             <MessageCircle size={18} />
-            <span>Chatbot</span>
+            <span>EcoChat</span>
           </Button>
         </div>
 
