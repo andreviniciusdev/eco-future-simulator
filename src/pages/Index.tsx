@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Chatbot from "@/components/Chatbot";
 import OceanBackground from "@/components/OceanBackground";
 import { toast } from "sonner";
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Users, Award, Building } from 'lucide-react';
 
 const Index = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -134,8 +134,9 @@ const Index = () => {
               
               <div className="pt-4">
                 <button 
+                  type="button"
                   onClick={handlePlayNow} 
-                  className="ocean-button-primary hover:scale-105 transition-transform"
+                  className="ocean-button-primary hover:scale-105 transition-transform cursor-pointer"
                 >
                   Jogar Agora
                 </button>
@@ -146,6 +147,111 @@ const Index = () => {
         
         {/* Background wave decoration */}
         <div className="absolute bottom-0 left-0 right-0 h-32 w-[200%] bg-hero-pattern opacity-10 animate-wave" />
+      </section>
+      
+      {/* Sobre nós Section */}
+      <section 
+        id="about-us" 
+        className="py-20 px-6 bg-gradient-to-b from-white to-blue-50 relative overflow-hidden"
+      >
+        <div className="container mx-auto max-w-5xl">
+          <h2 className="section-title text-center mb-12">Sobre nós</h2>
+          
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6 text-gray-700 order-2 md:order-1">
+              <div className="flex items-center gap-4 mb-6">
+                <Building className="h-10 w-10 text-ocean" />
+                <h3 className="text-3xl font-bold text-ocean-deep">SQT.INC</h3>
+              </div>
+              
+              <p className="text-lg">
+                A SQT.INC nasceu em 2021 da união de mentes apaixonadas por tecnologia e sustentabilidade. 
+                Nossa missão é desenvolver soluções inovadoras para os desafios ambientais mais urgentes 
+                do nosso planeta.
+              </p>
+              
+              <p className="text-lg">
+                O que começou como um pequeno grupo de pesquisadores e desenvolvedores cresceu para uma 
+                equipe multidisciplinar dedicada a criar tecnologias que conectam as pessoas com o meio ambiente.
+              </p>
+              
+              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-ocean">
+                <h4 className="font-bold text-xl text-ocean-deep mb-4">Nossa Missão</h4>
+                <p>
+                  Desenvolver ferramentas tecnológicas que promovam a conscientização ambiental e 
+                  facilitem ações concretas para preservação dos oceanos e ecossistemas marinhos.
+                </p>
+              </div>
+              
+              <div className="flex gap-6 mt-8">
+                <div className="flex flex-col items-center">
+                  <Users className="h-8 w-8 text-ocean mb-2" />
+                  <span className="text-2xl font-bold text-ocean-deep">15+</span>
+                  <span className="text-sm text-gray-600">Especialistas</span>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <Award className="h-8 w-8 text-ocean mb-2" />
+                  <span className="text-2xl font-bold text-ocean-deep">8</span>
+                  <span className="text-sm text-gray-600">Prêmios</span>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <Building className="h-8 w-8 text-ocean mb-2" />
+                  <span className="text-2xl font-bold text-ocean-deep">3</span>
+                  <span className="text-sm text-gray-600">Escritórios</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="order-1 md:order-2">
+              <div className="relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1519389950473-47ba0277781c" 
+                  alt="Equipe SQT.INC trabalhando" 
+                  className="rounded-xl shadow-xl w-full h-auto"
+                />
+                <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-lg shadow-lg">
+                  <img 
+                    src="https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b" 
+                    alt="Inovação" 
+                    className="w-24 h-24 rounded-lg object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-16 grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow">
+              <h4 className="font-bold text-xl text-ocean-deep mb-4">Pesquisa</h4>
+              <p className="text-gray-700">
+                Nossa equipe de cientistas e pesquisadores está constantemente explorando 
+                novas formas de compreender e proteger o ambiente marinho.
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow">
+              <h4 className="font-bold text-xl text-ocean-deep mb-4">Desenvolvimento</h4>
+              <p className="text-gray-700">
+                Transformamos conhecimento científico em ferramentas tecnológicas acessíveis 
+                e intuitivas para conscientização ambiental.
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow">
+              <h4 className="font-bold text-xl text-ocean-deep mb-4">Educação</h4>
+              <p className="text-gray-700">
+                Acreditamos no poder da educação para mudar o mundo. Nossos projetos visam 
+                informar e inspirar pessoas de todas as idades.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full filter blur-3xl opacity-30 -z-10"></div>
+        <div className="absolute bottom-20 left-20 w-80 h-80 bg-blue-200 rounded-full filter blur-3xl opacity-20 -z-10"></div>
       </section>
     </div>
   );
