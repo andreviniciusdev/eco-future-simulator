@@ -40,25 +40,25 @@ export const Navbar = ({
         <div className="hidden md:flex items-center space-x-6">
           <button
             onClick={() => scrollToSection('hero')}
-            className="text-white hover:text-[#1e3a8a] transition duration-150 ease-in-out;"
+            className="text-white hover:text-[#38bdf8] transition duration-150 ease-in-out;"
           >
             Início
           </button>
           <button
             onClick={() => scrollToSection('about')}
-            className="text-white hover:text-[#1e3a8a] transition duration-150 ease-in-out;"
+            className="text-white hover:text-[#38bdf8] transition duration-150 ease-in-out;"
           >
             Saiba Mais
           </button>
           <button
             onClick={() => scrollToSection('about-us')}
-            className="text-white hover:text-[#1e3a8a] transition duration-150 ease-in-out;"
+            className="text-white hover:text-[#38bdf8] transition duration-150 ease-in-out;"
           >
             Sobre Nós
           </button>
           <Button
             onClick={onToggleChat}
-            className="ml-4 bg-[#0ea5e9] hover:bg-[#1e3a8a] text-white flex items-center gap-2"
+            className="ml-4 bg-[#0ea5e9] hover:bg-[#38bdf8] text-white flex items-center gap-2"
           >
             <MessageCircle size={18} />
             <span>Chatbot</span>
