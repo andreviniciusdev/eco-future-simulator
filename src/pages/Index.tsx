@@ -160,10 +160,10 @@ const Index = () => {
                 <h3 className="text-3xl font-bold text-ocean-deep">SQT.INC</h3>
               </div>
 
-              <p className="text-lg">
-                A SQT.INC nasceu em 2021 da união de mentes apaixonadas por tecnologia e sustentabilidade.
-                Nossa missão é desenvolver soluções inovadoras para os desafios ambientais mais urgentes
-                do nosso planeta.
+              <p className="text-lg text-justify">
+                A SQT INC - Só quem trabalha Incorporated © surgiu em 2023 como a expressão coletiva de pessoas comprometidas com tecnologia, propósito e impacto. Aqui, a empresa é feita por quem trabalha nela — cada ideia, linha de código e decisão carrega a identidade de quem constrói todos os dias.
+
+                Começamos como um pequeno grupo com visão compartilhada e, desde então, nos tornamos uma equipe unida pelo desejo de criar soluções que respeitem o planeta e as pessoas. Seguimos desenvolvendo tecnologias que transformam, conectam e refletem o mundo que queremos viver.
               </p>
 
               <p className="text-lg">
@@ -183,7 +183,7 @@ const Index = () => {
             <div className="order-1 md:order-2 flex items-start justify-center">
               <div className="relative">
                 <img
-                  src="https://images.unsplash.com/photo-1519389950473-47ba0277781c"
+                  src="public/imggrupo.png"
                   alt="Equipe SQT.INC trabalhando"
                   className="rounded-xl shadow-xl w-full h-auto"
                 />
