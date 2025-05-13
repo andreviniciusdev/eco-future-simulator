@@ -61,7 +61,7 @@ const Index = () => {
           <div className="flex flex-col md:flex-row gap-4 justify-center">
             <button className="relative group">
               <a
-                href="/public/simulator/index.html"
+                href="/components/simulator/index.html"
                 className="relative text-lg font-medium text-white after:content-[''] after:absolute after:left-0 after:bottom-0 after:top-7 after:h-[2px] after:w-0 after:bg-white after:transition-all after:duration-300 group-hover:after:w-full"
               >
                 Jogar agora
