@@ -183,7 +183,7 @@ const Index = () => {
             <div className="order-1 md:order-2 flex items-start justify-center">
               <div className="relative">
                 <img
-                  src="public/imggrupo.png"
+                  src="/imggrupo.png"
                   alt="Equipe SQT.INC trabalhando"
                   className="rounded-xl shadow-xl w-full h-auto"
                 />
