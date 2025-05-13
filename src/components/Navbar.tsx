@@ -50,6 +50,12 @@ export const Navbar = ({
           >
             Saiba Mais
           </button>
+          <button
+            onClick={() => scrollToSection('about-us')}
+            className="text-white hover:text-[#1e3a8a] transition duration-150 ease-in-out;"
+          >
+            Sobre Nós
+          </button>
           <Button
             onClick={onToggleChat}
             className="ml-4 bg-[#0ea5e9] hover:bg-[#1e3a8a] text-white flex items-center gap-2"
@@ -120,6 +126,18 @@ export const Navbar = ({
             className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-ocean w-full text-left"
           >
             Saiba Mais
+          </button>
+          <button
+            onClick={() => {
+              scrollToSection('about-us');
+              const mobileMenu = document.getElementById('mobile-menu');
+              if (mobileMenu) {
+                mobileMenu.classList.add('hidden');
+              }
+            }}
+            className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-ocean w-full text-left"
+          >
+            Sobre Nós
           </button>
         </div>
       </div>
