@@ -61,7 +61,7 @@ const Index = () => {
           <div className="flex flex-col md:flex-row gap-4 justify-center">
             <button className="relative group">
               <a
-                href="https://andreviniciusdev.github.io/simulador-ecobot/"
+                href="/src/components/simulator/index.html"
                 className="relative text-lg font-medium text-white after:content-[''] after:absolute after:left-0 after:bottom-0 after:top-7 after:h-[2px] after:w-0 after:bg-white after:transition-all after:duration-300 group-hover:after:w-full"
               >
                 Jogar agora
@@ -96,14 +96,14 @@ const Index = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center mt-12">
             <div>
               <img
-                src="https://images.unsplash.com/photo-1482938289607-e9573fc25ebb"
+                src="/acidificacao_redimensionada.png"
                 alt="Oceano e sua biodiversidade"
                 className="rounded-xl shadow-xl w-full h-auto"
               />
             </div>
 
             <div className="space-y-6 text-gray-700">
-              <p className="text-lg">
+              <p className="text-lg text-justify">
                 A acidificação dos oceanos é um fenômeno causado pela absorção excessiva de dióxido de carbono (CO₂) da atmosfera pelos oceanos. Este processo químico reduz o pH da água, tornando-a mais ácida.
               </p>
 
@@ -126,7 +126,7 @@ const Index = () => {
                 </ul>
               </div>
 
-              <p className="text-lg font-medium text-ocean-deep">
+              <p className="text-lg font-medium text-ocean-deep text-justify">
                 A conscientização sobre este problema é fundamental para promover ações que possam mitigar seus efeitos devastadores nos ecossistemas marinhos e na vida humana.
               </p>
 
@@ -160,14 +160,14 @@ const Index = () => {
                 Começamos como um pequeno grupo com visão compartilhada e, desde então, nos tornamos uma equipe unida pelo desejo de criar soluções que respeitem o planeta e as pessoas. Seguimos desenvolvendo tecnologias que transformam, conectam e refletem o mundo que queremos viver.
               </p>
 
-              <p className="text-lg">
+              <p className="text-lg text-justify">
                 O que começou como um pequeno grupo de pesquisadores e desenvolvedores cresceu para uma
                 equipe multidisciplinar dedicada a criar tecnologias que conectam as pessoas com o meio ambiente.
               </p>
 
               <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-ocean">
                 <h4 className="font-bold text-xl text-ocean-deep mb-4">Nossa Missão</h4>
-                <p>
+                <p className="text-justify">
                   Desenvolver ferramentas tecnológicas que promovam a conscientização ambiental e
                   facilitem ações concretas para preservação dos oceanos e ecossistemas marinhos.
                 </p>

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oceano em Perigo: Simulador de Acidificação</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #1E90FF);
+            height: 100vh;
+            overflow: hidden;
+            color: white;
+            perspective: 1000px;
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+
+        #ocean-view {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: linear-gradient(to bottom, rgba(0, 105, 148, 0.8), rgba(0, 60, 100, 0.9));
+            transition: background 1s;
+            overflow: hidden;
+        }
+
+        .marine-life {
+            position: absolute;
+            font-size: 2rem;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+            transition: all 1s;
+            z-index: 10;
+        }
+
+        #controls-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        #stats-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 15px;
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .stat-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .stat-fill {
+            height: 100%;
+            transition: width 0.5s;
+        }
+
+        #ph-bar .stat-fill {
+            background: linear-gradient(to right, #4CAF50, #FFEB3B, #F44336);
+        }
+
+        #health-bar .stat-fill {
+            background: linear-gradient(to right, #4CAF50, #F44336);
+        }
+
+        #pollution-bar .stat-fill {
+            background: #9E9E9E;
+        }
+
+        #message-box {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 100;
+        }
+
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 5s infinite ease-in-out;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(10deg);
+            }
+        }
+
+        .pollution-particle {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            animation: sink 10s linear;
+            z-index: 5;
+        }
+
+        @keyframes sink {
+            0% {
+                transform: translateY(-100px);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s;
+        }
+
+        #game-over.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #game-over h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #F44336;
+        }
+
+        #game-over p {
+            max-width: 600px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        #restart-btn {
+            background: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #restart-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <div id="ocean-view">
+            <!-- Bolhas de ar para efeito submarino -->
+            <div class="bubble" style="width: 10px; height: 10px; left: 10%; top: 80%;"></div>
+            <div class="bubble" style="width: 15px; height: 15px; left: 30%; top: 70%;"></div>
+            <div class="bubble" style="width: 8px; height: 8px; left: 50%; top: 90%;"></div>
+            <div class="bubble" style="width: 12px; height: 12px; left: 70%; top: 60%;"></div>
+            <div class="bubble" style="width: 5px; height: 5px; left: 90%; top: 85%;"></div>
+
+            <!-- Vida marinha será adicionada aqui via JavaScript -->
+        </div>
+
+        <div id="stats-panel">
+            <h3>Status do Oceano</h3>
+            <div class="stat-item">
+                <span>Nível de pH:</span>
+                <span id="ph-value">8.1</span>
+            </div>
+            <div class="stat-bar" id="ph-bar">
+                <div class="stat-fill" style="width: 100%;"></div>
+            </div>
+
+            <div class="stat-item">
+                <span>Saúde do Ecossistema:</span>
+                <span id="health-value">100%</span>
+            </div>
+            <div class="stat-bar" id="health-bar">
+                <div class="stat-fill" style="width: 100%;"></div>
+            </div>
+
+            <div class="stat-item">
+                <span>Nível de Poluição:</span>
+                <span id="pollution-value">0%</span>
+            </div>
+            <div class="stat-bar" id="pollution-bar">
+                <div class="stat-fill" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div id="message-box"></div>
+
+        <div id="controls-panel">
+            <button class="control-btn" id="add-co2">
+                <i class="fas fa-smog"></i> Emitir CO₂
+            </button>
+            <button class="control-btn" id="add-trash">
+                <i class="fas fa-trash"></i> Descartar Lixo
+            </button>
+            <button class="control-btn" id="clean-up">
+                <i class="fas fa-recycle"></i> Limpar Oceano
+            </button>
+        </div>
+
+        <div id="game-over">
+            <h2>Ecossistema Colapsado!</h2>
+            <p>O oceano está muito acidificado para sustentar a vida marinha. A poluição por CO₂ e outros poluentes
+                destruiu este ecossistema.</p>
+            <p>Na vida real, isso está acontecendo em escala global devido à queima de combustíveis fósseis e poluição.
+            </p>
+            <button id="restart-btn">Recomeçar Simulação</button>
+        </div>
+    </div>
+
+    <script>
+        // Estado do jogo
+        const gameState = {
+            ph: 8.1,
+            pollution: 0,
+            ecosystemHealth: 100,
+            species: [
+                { type: "coral", icon: "fa-water", alive: true, element: null, count: 5 },
+                { type: "fish", icon: "fa-fish", alive: true, element: null, count: 8 },
+                { type: "starfish", icon: "fa-star", alive: true, element: null, count: 3 },  // não tem ícone próprio, mas mantém representatividade
+                { type: "shell", icon: "fa-fan", alive: true, element: null, count: 6 },
+                { type: "turtle", icon: "fa-otter", alive: true, element: null, count: 2 }
+            ],
+
+            gameActive: true
+        };
+
+        // Elementos DOM
+        const oceanView = document.getElementById('ocean-view');
+        const phValue = document.getElementById('ph-value');
+        const phBar = document.querySelector('#ph-bar .stat-fill');
+        const healthValue = document.getElementById('health-value');
+        const healthBar = document.querySelector('#health-bar .stat-fill');
+        const pollutionValue = document.getElementById('pollution-value');
+        const pollutionBar = document.querySelector('#pollution-bar .stat-fill');
+        const messageBox = document.getElementById('message-box');
+        const gameOverScreen = document.getElementById('game-over');
+
+        // Inicializar vida marinha
+        function initMarineLife() {
+            gameState.species.forEach(specie => {
+                for (let i = 0; i < specie.count; i++) {
+                    const marineElement = document.createElement('div');
+                    marineElement.className = 'marine-life';
+                    marineElement.innerHTML = `<i class="fas ${specie.icon}"></i>`;
+
+                    // Posição aleatória
+                    marineElement.style.left = `${Math.random() * 80 + 10}%`;
+                    marineElement.style.top = `${Math.random() * 70 + 15}%`;
+                    marineElement.style.transform = `scale(${Math.random() * 0.7 + 0.7})`;
+
+                    oceanView.appendChild(marineElement);
+                }
+            });
+        }
+
+        // Atualizar visualização do oceano
+        function updateOceanView() {
+            // Atualizar cor da água baseado no pH
+            const hue = 200 + (8.1 - gameState.ph) * 50; // Azul para verde
+            const saturation = 80 - gameState.pollution / 2;
+            const lightness = 50 - gameState.pollution / 4;
+            oceanView.style.background = `linear-gradient(to bottom, 
+                hsla(${hue}, ${saturation}%, ${lightness}%, 0.8), 
+                hsla(${hue - 20}, ${saturation - 10}%, ${lightness - 10}%, 0.9))`;
+
+            // Atualizar estatísticas
+            phValue.textContent = gameState.ph.toFixed(1);
+            phBar.style.width = `${((gameState.ph - 7) / (8.1 - 7)) * 100}%`;
+
+            pollutionValue.textContent = `${Math.min(100, gameState.pollution)}%`;
+            pollutionBar.style.width = `${Math.min(100, gameState.pollution)}%`;
+
+            healthValue.textContent = `${Math.max(0, gameState.ecosystemHealth)}%`;
+            healthBar.style.width = `${Math.max(0, gameState.ecosystemHealth)}%`;
+
+            // Verificar fim de jogo
+            if (gameState.ecosystemHealth <= 0 && gameState.gameActive) {
+                endGame();
+            }
+        }
+
+        // Mostrar mensagem
+        function showMessage(text, duration = 3000) {
+            messageBox.textContent = text;
+            messageBox.style.opacity = '1';
+
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+            }, duration);
+        }
+
+        // Adicionar poluição
+        function addPollution(type, amount) {
+            if (!gameState.gameActive) return;
+
+            // Aumentar poluição
+            gameState.pollution = Math.min(100, gameState.pollution + amount);
+
+            // Diminuir pH (mais poluição = mais acidificação)
+            gameState.ph = Math.max(7.0, gameState.ph - (amount * 0.005));
+
+            // Diminuir saúde do ecossistema
+            gameState.ecosystemHealth = Math.max(0, gameState.ecosystemHealth - (amount * 0.3));
+
+            // Criar partículas de poluição
+            createPollutionParticles(type);
+
+            // Atualizar visual
+            updateOceanView();
+
+            // Mostrar mensagem educativa
+            if (type === 'co2') {
+                showMessage(`Queima de combustíveis fósseis liberou CO₂. O oceano está absorvendo o excesso, tornando-se mais ácido.`);
+            } else {
+                showMessage(`Lixo plástico e poluentes estão contaminando o oceano e prejudicando a vida marinha.`);
+            }
+
+            // Verificar mortes de espécies
+            checkSpeciesHealth();
+        }
+
+        // Criar partículas de poluição visuais
+        function createPollutionParticles(type) {
+            const particleCount = type === 'co2' ? 10 : 15;
+            const particleColor = type === 'co2' ? 'rgba(150, 150, 150, 0.7)' : 'rgba(0, 0, 0, 0.5)';
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'pollution-particle';
+                particle.style.background = particleColor;
+                particle.style.width = `${Math.random() * 10 + 5}px`;
+                particle.style.height = particle.style.width;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDuration = `${Math.random() * 5 + 5}s`;
+
+                oceanView.appendChild(particle);
+
+                // Remover após animação
+                setTimeout(() => {
+                    particle.remove();
+                }, 10000);
+            }
+        }
+
+        // Verificar saúde das espécies
+        function checkSpeciesHealth() {
+            const marineLifeElements = document.querySelectorAll('.marine-life');
+
+            if (gameState.ph < 7.8) {
+                // Corais começam a morrer
+                showMessage("Corais estão branqueando devido à acidificação!");
+                marineLifeElements.forEach(el => {
+                    if (el.innerHTML.includes('fa-umbrella-beach')) {
+                        el.style.opacity = '0.5';
+                    }
+                });
+            }
+
+            if (gameState.ph < 7.6) {
+                // Moluscos têm problemas com conchas
+                showMessage("Moluscos não conseguem formar conchas adequadas!");
+                marineLifeElements.forEach(el => {
+                    if (el.innerHTML.includes('fa-egg')) {
+                        el.style.opacity = '0.5';
+                    }
+                });
+            }
+
+            if (gameState.ph < 7.4) {
+                // Peixes morrendo
+                showMessage("Peixes estão sofrendo com a acidificação!");
+                marineLifeElements.forEach(el => {
+                    if (el.innerHTML.includes('fa-fish')) {
+                        el.style.opacity = '0.3';
+                    }
+                });
+            }
+        }
+
+        // Limpar oceano
+        function cleanOcean() {
+            gameState.pollution = Math.max(0, gameState.pollution - 30);
+            gameState.ph = Math.min(8.1, gameState.ph + 0.1);
+            gameState.ecosystemHealth = Math.min(100, gameState.ecosystemHealth + 15);
+
+            updateOceanView();
+            showMessage("Esforços de limpeza e redução de emissões estão ajudando o oceano a se recuperar.");
+
+            // Recuperar alguns organismos
+            if (gameState.ph > 7.6) {
+                const marineLifeElements = document.querySelectorAll('.marine-life');
+                marineLifeElements.forEach(el => {
+                    el.style.opacity = '1';
+                });
+            }
+        }
+
+        // Fim de jogo
+        function endGame() {
+            gameState.gameActive = false;
+            gameOverScreen.classList.add('show');
+        }
+
+        // Reiniciar jogo
+        function restartGame() {
+            gameState.ph = 8.1;
+            gameState.pollution = 0;
+            gameState.ecosystemHealth = 100;
+            gameState.gameActive = true;
+
+            // Resetar opacidade da vida marinha
+            const marineLifeElements = document.querySelectorAll('.marine-life');
+            marineLifeElements.forEach(el => {
+                el.style.opacity = '1';
+            });
+
+            updateOceanView();
+            gameOverScreen.classList.remove('show');
+            showMessage("Oceano recuperado! Tome decisões melhores desta vez.");
+        }
+
+        // Event listeners
+        document.getElementById('add-co2').addEventListener('click', () => addPollution('co2', 10));
+        document.getElementById('add-trash').addEventListener('click', () => addPollution('trash', 15));
+        document.getElementById('clean-up').addEventListener('click', cleanOcean);
+        document.getElementById('restart-btn').addEventListener('click', restartGame);
+
+        // Inicializar jogo
+        initMarineLife();
+        updateOceanView();
+        showMessage("Bem-vindo ao simulador de acidificação oceânica. Clique nos botões para interagir.");
+    </script>
+</body>
+
+</html>
